@@ -4,9 +4,9 @@
 
 
 Implementation:
-The function get_prediction is an inference function for detection, classification, and semantic segmentation tasks, depending on which inputs you choose. Implemented in modules.py, where the image detection process will call the Edamam API to get nutritional information in the food. We also save nutritional information in CSV files in the folder /static/csv. 
+The "get_prediction" function serves as a versatile tool for tasks such as detection, classification, and semantic segmentation. Its implementation can be found in the "modules.py" module. For image detection, the process involves interfacing with the Edamam API to extract nutritional data from food images. This nutritional information is then stored in CSV files, housed within the "/static/csv" directory.
 
-We provide the user with the ability to customize the threshold of confidence and so that the user can find a suitable threshold for the input image. In order not to have to rerun the whole model every time these parameters are changed, when the image is sent from the client, the server will perform a perceptual hash encryption algorithm to encrypt the image and use that resulting string to name the image when saving to the server. This helps when the client sends an image whose encoding already exists in the database, the server will only post-process the previously predicted result without re-executing the prediction.
+We grant users the ability to personalize confidence thresholds. This empowers them to identify the optimal threshold for input images. To prevent the need for re-running the entire model whenever these parameters change, a perceptual hash encryption algorithm is employed. This algorithm encrypts the image, generating a resultant string used for naming and storing the image on the server. This strategic approach proves advantageous when the client sends an image with an encoding already present in the database. In such instances, the server simply carries out post-processing on the pre-predicted result, avoiding the need for re-executing the prediction process.
 
 Sample Results:
 
@@ -15,7 +15,6 @@ Sample Results:
 
 
 Dataset:
-To train the food detection model, we survey the following datasets:
-Open Images V6-Food: Open Images V6 is a huge dataset from Google for Computer Vision tasks. To solve our problem, we extracted from a large dataset of food-related labels. The extracted set includes 18 labels with more than 20,000 images.
-School Lunch Dataset: includes 3940 photos of a bunch of Japanese high school students, taken at the same frontal angle with the goal of assessing student nutrition. Labels consist of coordinates and types of dishes are attached and divided into 21 different words, in the dataset there is also a label "Other Foods" if the dishes do not belong to the remaining 20 words.
-Vietnamese Food: a self-collected dataset on Vietnamese dishes, including 10 simple dishes of our country such as Pho, Com Tam, Hu Tieu, and Banh Mi,... Each category has about 20-30 images, divided 80-20 for training and evaluation.
+- Open Images V6-Food: We utilized the extensive Open Images V6 dataset, primarily focusing on food-related labels. Our extraction yielded 18 specific labels, encompassing over 20,000 images.
+- School Lunch Dataset: This collection comprises 3,940 photographs capturing Japanese high school students. All images are taken from a consistent frontal angle and serve the purpose of evaluating student nutrition. The dataset contains 21 distinct labels, indicating the types of dishes along - with their coordinates. Notably, a "Other Foods" label is present for categorizing dishes not falling within the defined 20 categories.
+Vietnamese Food: We curated a dataset showcasing traditional Vietnamese dishes. This self-collected dataset showcases 10 common Vietnamese dishes, such as Pho, Com Tam, Hu Tieu, and Banh Mi. Each category is represented by approximately 20 to 30 images, with an 80-20 split for training and evaluation purposes.
