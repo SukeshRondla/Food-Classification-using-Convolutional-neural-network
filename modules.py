@@ -336,42 +336,33 @@ def ensemble_models(input_path, image_size, min_iou, min_conf, tta=False):
         result_dict['scores'].append(score)
     return result_dict, class_names
 
-
 def get_prediction(
-        input_path,
-        output_path,
-        model_name,
-        tta=False,
-        ensemble=False,
-        min_iou=0.5,
-        min_conf=0.1,
-        segmentation=False,
-        enhance_labels=False):
+    input_path,
+    output_path,
+    model_name,
+    tta=False,
+    ensemble=False,
+    min_iou=0.5,
+    min_conf=0.1,
+    segmentation=False,
+    enhance_labels=False,
+):
 
     if segmentation:
-        tmp_path = os.path.join(CACHE_DIR, 'semantic_seg.pth')
-        if not os.path.isfile(tmp_path):
-            download_pretrained_weights(
-                'semantic_seg',
-                output=tmp_path)
-
+        tmp_path = load_model_weights(SEGMENTATION_MODEL, CACHE_DIR)
         seg_args = InferenceArguments(key="segmentation")
         opts = Opts(seg_args).parse_args()
         seg_pipeline = SegmentationPipeline(opts, input_path)
         output_path = seg_pipeline.inference()
 
-        # get real output for segmentation task to display in webapp
-        output_path = output_path.split('/')[-3:]
-        output_path = os.path.join(
-            output_path[0], output_path[1], output_path[2])
+        output_path_parts = output_path.split('/')[-3:]
+        output_path = os.path.join(*output_path_parts)
 
         return output_path, 'semantic'
 
-    # get hashed key from image path
     ori_hashed_key = os.path.splitext(os.path.basename(input_path))[0]
 
     ori_img = cv2.imread(input_path)
-
     ori_img = np.array(ori_img, dtype=np.uint16)
     ori_img = cv2.cvtColor(ori_img, cv2.COLOR_BGR2RGB)
     img_h, img_w, _ = ori_img.shape
@@ -383,7 +374,7 @@ def get_prediction(
             output_path=output_path,
             min_conf=min_conf,
             min_iou=min_iou,
-            tta=tta
+            tta=tta,
         )
 
         det_args = InferenceArguments(key="detection")
@@ -397,36 +388,28 @@ def get_prediction(
         result_dict['labels'] = result_dict['labels'][0]
         result_dict['scores'] = result_dict['scores'][0]
 
-        # Post process (optional)
-        # result_dict = postprocess(result_dict, img_w, img_h, min_iou, min_conf)
-
     else:
         result_dict, class_names = ensemble_models(
-            input_path, [img_w, img_h], min_iou, min_conf, tta=tta)
+            input_path, [img_w, img_h], min_iou, min_conf, tta=tta
+        )
 
-    # add food name
     result_dict = append_food_name(result_dict, class_names)
 
-    # enhance by using a classifier
     if enhance_labels:
         result_dict = label_enhancement(ori_img, result_dict)
 
-    # add food infomation and save to file
     result_dict = append_food_info(result_dict)
 
-    # draw result
-    draw_image(output_path, ori_img, result_dict, class_names)
+    draw_bboxes(output_path, ori_img, result_dict, class_names)
 
     result_list = convert_dict_to_list(result_dict)
 
-    # Save food info as CSV
-    csv_result_dict = drop_duplicate_fill0(result_dict)
-    save_cache(csv_result_dict, ori_hashed_key+'_info',
-               CSV_FOLDER, exclude=['boxes', "labels", "scores"])
+    csv_result_dict = remove_value_zero(result_dict)
+    save_to_csv(csv_result_dict, ori_hashed_key+'_info', CSV_FOLDER, exclude=['boxes', "labels", "scores"])
 
-    # Transpose CSV
     df = pd.read_csv(os.path.join(CSV_FOLDER, ori_hashed_key+'_info.csv'))
-    df.set_index('names').T.to_csv(os.path.join(
-        CSV_FOLDER, ori_hashed_key+'_info2.csv'))
+    df.set_index('names').T.to_csv(os.path.join(CSV_FOLDER, ori_hashed_key+'_info2.csv'))
 
     return output_path, 'detection'
+
+
