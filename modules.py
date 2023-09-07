@@ -8,7 +8,7 @@ from theseus.utilities.download import download_pretrained_weights
 from theseus.utilities import box_fusion, change_box_order, postprocessing
 from theseus.apis.inference import SegmentationPipeline, DetectionPipeline, ClassificationPipeline
 from theseus.opt import Opts, InferenceArguments
-from analyzer import get_info_from_db
+from analyzer import get_info_from_db 
 
 CACHE_DIR = './weights'
 CSV_FOLDER = './static/csv'
